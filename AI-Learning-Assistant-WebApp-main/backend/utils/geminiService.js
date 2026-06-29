@@ -19,11 +19,11 @@ export const generateFlashcards = async (text, count = 10) => {
     Separate each flashcard with "---"
 
     Text:
-    ${text.substring(0, 15000)}`;
+    ${text.substring(0, 8000)}`;
 
     try {
         const response = await groq.chat.completions.create({
-            model: "llama-3.3-70b-versatile",
+            model: "llama-3.1-8b-instant",
             messages: [{ role: "user", content: prompt }],
             max_tokens: 2048,
         });
@@ -74,11 +74,11 @@ export const generateQuiz = async (text, numQuestions = 5, difficulty = 'medium'
     - Do NOT number the questions
 
     Text:
-    ${text.substring(0, 15000)}`;
+    ${text.substring(0, 8000)}`;
 
     try {
         const response = await groq.chat.completions.create({
-            model: "llama-3.3-70b-versatile",
+            model: "llama-3.1-8b-instant",
             messages: [{ role: "user", content: prompt }],
             max_tokens: 2048,
         });
@@ -104,31 +104,25 @@ export const generateQuiz = async (text, numQuestions = 5, difficulty = 'medium'
             }
 
             if (question && options.length === 4 && correctAnswer) {
-                // Resolve correctAnswer to actual option text
                 let resolvedAnswer = correctAnswer;
 
                 if (resolvedAnswer.match(/^[Oo]\d+$/)) {
-                    // AI used O1/O2 code format (what we want) — convert to option text
                     const optionNum = parseInt(resolvedAnswer.substring(1)) - 1;
                     if (optionNum >= 0 && optionNum < options.length) {
                         resolvedAnswer = options[optionNum];
                     }
                 } else {
-                    // AI returned full text despite instructions — do multi-level matching
                     const normalizedRaw = resolvedAnswer.toLowerCase().replace(/\s+/g, ' ').trim();
                     const normalizedOptions = options.map(o => o.toLowerCase().replace(/\s+/g, ' ').trim());
 
-                    // 1. Exact match
                     let matchIdx = normalizedOptions.findIndex(o => o === normalizedRaw);
 
-                    // 2. One starts with the other (handles truncation/extension)
                     if (matchIdx === -1) {
                         matchIdx = normalizedOptions.findIndex(
                             o => o.startsWith(normalizedRaw) || normalizedRaw.startsWith(o)
                         );
                     }
 
-                    // 3. One contains the other
                     if (matchIdx === -1) {
                         matchIdx = normalizedOptions.findIndex(
                             o => o.includes(normalizedRaw) || normalizedRaw.includes(o)
@@ -136,9 +130,8 @@ export const generateQuiz = async (text, numQuestions = 5, difficulty = 'medium'
                     }
 
                     if (matchIdx !== -1) {
-                        resolvedAnswer = options[matchIdx]; // Use canonical option casing
+                        resolvedAnswer = options[matchIdx];
                     }
-                    // If still no match, keep the raw text as last resort
                 }
 
                 questions.push({ question, options, correctAnswer: resolvedAnswer, explanation, difficulty });
@@ -156,11 +149,11 @@ export const generateSummary = async (text) => {
     const prompt = `Provide a concise summary of the following text, highlighting the key concepts, main ideas, and important points. Keep the summary clear and structured.
 
     Text:
-    ${text.substring(0, 20000)}`;
+    ${text.substring(0, 8000)}`;
 
     try {
         const response = await groq.chat.completions.create({
-            model: "llama-3.3-70b-versatile",
+            model: "llama-3.1-8b-instant",
             messages: [{ role: "user", content: prompt }],
             max_tokens: 1024,
         });
@@ -173,7 +166,8 @@ export const generateSummary = async (text) => {
 };
 
 export const chatWithContext = async (question, chunks) => {
-    const context = chunks.map((c, i) => `[Chunk ${i + 1}]\n${c.content}`).join('\n\n');
+    const rawContext = chunks.map((c, i) => `[Chunk ${i + 1}]\n${c.content}`).join('\n\n');
+    const context = rawContext.substring(0, 8000); // Truncate to stay within TPM limits
 
     const prompt = `Based on the following context from a document, analyse the context and answer the user's question. If the answer is not in the context, say so.
 
@@ -186,7 +180,7 @@ export const chatWithContext = async (question, chunks) => {
 
     try {
         const response = await groq.chat.completions.create({
-            model: "llama-3.3-70b-versatile",
+            model: "llama-3.1-8b-instant",
             messages: [{ role: "user", content: prompt }],
             max_tokens: 1024,
         });
@@ -202,11 +196,11 @@ export const explainConcept = async (concept, context) => {
     const prompt = `Explain the concept of "${concept}" based on the following context. Provide a clear, educational explanation that's easy to understand. Include examples if relevant.
 
     Context:
-    ${context.substring(0, 10000)}`;
+    ${context.substring(0, 8000)}`;
 
     try {
         const response = await groq.chat.completions.create({
-            model: "llama-3.3-70b-versatile",
+            model: "llama-3.1-8b-instant",
             messages: [{ role: "user", content: prompt }],
             max_tokens: 1024,
         });

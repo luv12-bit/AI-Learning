@@ -46,7 +46,8 @@ app.use(
     // ],
     origin: [
       "http://localhost:5173",
-      "https://ai-learning-ten-tau.vercel.app", // ← this one
+      "https://ai-learning-ten-tau.vercel.app",
+      "https://ai-learning-git-main-luvmaken107-3088s-projects.vercel.app" // ← this one
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
