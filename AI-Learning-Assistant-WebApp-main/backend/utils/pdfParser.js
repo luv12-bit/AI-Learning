@@ -1,5 +1,7 @@
 import fs from "fs/promises";
-import pdfParse from "pdf-parse/lib/pdf-parse.js";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const pdfParse = require("pdf-parse");
 
 export const extractTextFromPDF = async (filePathOrBuffer) => {
     try {
